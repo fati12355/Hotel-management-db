@@ -1,26 +1,36 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Afficher le formulaire de réservation seulement si les dates sont remplies
-    document.querySelector("button.book_btn").addEventListener("click", (e) => {
-        e.preventDefault(); // Empêcher le rechargement de la page
+    console.log("📢 book.js chargé avec succès !");
 
-        // Récupérer les valeurs des dates d'arrivée et de départ
-        let arrivalDate = document.querySelector("input[name='arrival_date']").value;
-        let departureDate = document.querySelector("input[name='departure_date']").value;
+    const bookBtn = document.querySelector("button.book_btn");
 
-        // Vérifier si les dates sont remplies
-        if (!arrivalDate || !departureDate) {
-            alert("Veuillez remplir les dates d'arrivée et de départ avant de réserver.");
-            return;
-        }
+    if (bookBtn) {
+        console.log("✅ Bouton 'Book Now' trouvé !");
+        bookBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            console.log("📌 Bouton 'Book Now' cliqué !");
+            
+            // Vérifier si les dates d'arrivée et de départ sont bien remplies
+            let arrivalDate = document.querySelector("input[name='arrival_date']").value;
+            let departureDate = document.querySelector("input[name='departure_date']").value;
 
-        // Stocker les dates dans des variables globales pour les récupérer plus tard
-        localStorage.setItem("arrivalDate", arrivalDate);
-        localStorage.setItem("departureDate", departureDate);
+            if (!arrivalDate || !departureDate) {
+                alert("Veuillez remplir les dates d'arrivée et de départ avant de réserver.");
+                return;
+            }
 
-        // Afficher le formulaire
-        document.getElementById("bookingForm").style.display = "block";
-        chargerChainesHotels();
-    });
+            // Stocker les dates dans localStorage pour les récupérer plus tard
+            localStorage.setItem("arrivalDate", arrivalDate);
+            localStorage.setItem("departureDate", departureDate);
+
+            // 🔄 Rediriger vers l'étape 1 (adresse)
+            window.location.href = "step1.html";
+        });
+    } else {
+        console.error("❌ ERREUR: Bouton 'Book Now' non trouvé !");
+    }
+});
+
+
 
     // Charger les chaînes d'hôtels depuis le backend
     async function chargerChainesHotels() {
@@ -111,64 +121,77 @@ document.getElementById("hotel").addEventListener("change", async (e) => {
     }
 });
 
+document.getElementById("confirmClient").addEventListener("click", async (e) => {
+    e.preventDefault(); // Prevent page reload
+
+    let clientData = {
+        full_name: document.getElementById("fullName").value,
+        nas: document.getElementById("nas").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value
+    };
+
+    try {
+        let response = await fetch("http://localhost:3000/registerClient", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(clientData)
+        });
+
+        let result = await response.json();
+
+        if (response.ok) {
+            alert(result.message);
+            localStorage.setItem("client_id", result.client_id); // Save client ID for later
+            
+            // Enable the reservation button after client is registered
+            document.getElementById("confirmReservation").disabled = false;
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        console.error("❌ Error registering client:", error);
+        alert("❌ Failed to register client.");
+    }
+});
+
 
     // Gérer le clic sur "Confirmer la réservation"
     
-        const confirmButton = document.getElementById("confirmReservation");
+    document.getElementById("confirmReservation").addEventListener("click", async (e) => {
+        e.preventDefault(); // Prevent page reload
     
-        // Ajouter une animation visuelle lorsqu'on clique sur le bouton
-        confirmButton.addEventListener("click", async (e) => {
-            e.preventDefault(); // Empêcher le rechargement de la page
+        let client_id = localStorage.getItem("client_id"); // Get saved client ID
+        if (!client_id) {
+            alert("❌ Please register client before confirming reservation.");
+            return;
+        }
     
-            // Effet visuel : changement de couleur
-            confirmButton.style.backgroundColor = "#4CAF50"; // Vert
-            confirmButton.textContent = "En cours...";
+        let reservationData = {
+            client_id: parseInt(client_id), // Use registered client ID
+            room_id: document.getElementById("room").value,
+            reservation_date: new Date().toISOString()
+        };
     
-            // Récupérer les données du formulaire
-            let reservationData = {
-                fullName: document.getElementById("fullName").value,
-                nas: document.getElementById("nas").value,
-                email: document.getElementById("email").value,
-                phone: document.getElementById("phone").value,
-                hotel_id: document.getElementById("hotel").value,
-                room_id: document.getElementById("room").value,
-                reservation_date: new Date().toISOString(),
-                arrivalDate: localStorage.getItem("arrivalDate"),
-                departureDate: localStorage.getItem("departureDate")
-            };
+        try {
+            let response = await fetch("http://localhost:3000/reservation", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(reservationData)
+            });
     
-            try {
-                let response = await fetch("http://localhost:3000/reservation", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(reservationData)
-                });
+            let result = await response.json();
     
-                let result = await response.json();
-    
-                if (response.ok) {
-                    // Effet visuel : Succès
-                    confirmButton.style.backgroundColor = "#008CBA"; // Bleu
-                    confirmButton.textContent = "✅ Réservation Confirmée !";
-    
-                    alert("✅ Réservation confirmée avec succès !");
-                    document.getElementById("reservationForm").reset(); // Réinitialiser le formulaire
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                console.error("Erreur lors de la réservation:", error);
-                alert("❌ Une erreur s'est produite lors de la réservation.");
-                confirmButton.style.backgroundColor = "#f44336"; // Rouge en cas d'erreur
-                confirmButton.textContent = "Réessayer";
+            if (response.ok) {
+                alert("✅ Reservation confirmed!");
+                document.getElementById("reservationForm").reset(); // Reset form
+            } else {
+                throw new Error(result.message);
             }
+        } catch (error) {
+            console.error("❌ Error during reservation:", error);
+            alert("❌ Failed to confirm reservation.");
+        }
+    });
     
-            // Rétablir le bouton après 2 secondes
-            setTimeout(() => {
-                confirmButton.style.backgroundColor = "#FF9800"; // Orange original
-                confirmButton.textContent = "Confirmer la réservation";
-            }, 2000);
-        });
-    
-    
-});
+
