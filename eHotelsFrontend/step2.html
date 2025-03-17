@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enregistrement Client</title>
+</head>
+<body>
+
+    <h2>Enregistrement du Client</h2>
+    <form id="clientForm">
+        <input type="text" id="full_name" placeholder="Nom complet" required>
+        <input type="text" id="nas" placeholder="Numéro NAS" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="tel" id="phone" placeholder="Téléphone" required>
+        <button type="submit">Continuer</button>
+    </form>
+
+    <script>
+        document.getElementById("clientForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const address_id = Number(localStorage.getItem("address_id")); // Forcer en nombre
+
+
+            console.log("🔍 Récupération de address_id depuis localStorage :", localStorage.getItem("address_id"));
+
+            if (!address_id) {
+                alert("❌ Erreur : Aucun ID d'adresse trouvé !");
+                return;
+            }
+
+            const clientData = {
+                full_name: document.getElementById("full_name").value,
+                nas: document.getElementById("nas").value,
+                
+                address_id: address_id // Associer l'adresse au client
+            };
+
+            try {
+                const response = await fetch("http://localhost:3000/client", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(clientData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    localStorage.setItem("client_id", result.client_id); // Stocker l'ID client
+                    window.location.href = "step3.html"; // Passer à l'étape suivante
+                } else {
+                    alert("❌ Erreur : " + result.message);
+                }
+            } catch (error) {
+                console.error("❌ Erreur lors de l'enregistrement du client :", error);
+            }
+        });
+    </script>
+
+</body>
+</html>

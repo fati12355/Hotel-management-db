@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservation</title>
+</head>
+<body>
+
+    <h2>Réserver une chambre</h2>
+
+    <label for="hotelChain">Choisir une chaîne d'hôtels :</label>
+    <select id="hotelChain"></select>
+
+    <label for="hotel">Choisir un hôtel :</label>
+    <select id="hotel"></select>
+
+    <label for="room">Choisir une chambre :</label>
+    <select id="room"></select>
+
+    <button id="confirmReservation">Confirmer la réservation</button>
+
+    <script>
+        async function chargerChainesHotels() {
+            try {
+                const response = await fetch("http://localhost:3000/hotelChains");
+                const hotelChains = await response.json();
+                let select = document.getElementById("hotelChain");
+                select.innerHTML = "<option value=''>Sélectionner une chaîne</option>";
+
+                hotelChains.forEach(chain => {
+                    let option = document.createElement("option");
+                    option.value = chain.hotelchain_id;
+                    option.textContent = chain.hotel_chain_name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("❌ Erreur lors du chargement des chaînes d'hôtels :", error);
+            }
+        }
+
+        document.getElementById("hotelChain").addEventListener("change", async (e) => {
+            let hotelchain_id = e.target.value.trim();
+            if (!hotelchain_id) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/hotels?hotelchain_id=${hotelchain_id}`);
+                const hotels = await response.json();
+                let select = document.getElementById("hotel");
+                select.innerHTML = "<option value=''>Sélectionner un hôtel</option>";
+
+                hotels.forEach(hotel => {
+                    let option = document.createElement("option");
+                    option.value = hotel.hotel_id;
+                    option.textContent = hotel.email_address;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("❌ Erreur lors du chargement des hôtels :", error);
+            }
+        });
+
+        document.getElementById("hotel").addEventListener("change", async (e) => {
+            let hotel_id = e.target.value.trim();
+            if (!hotel_id) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/rooms?hotel_id=${hotel_id}`);
+                const rooms = await response.json();
+                let select = document.getElementById("room");
+                select.innerHTML = "<option value=''>Sélectionner une chambre</option>";
+
+                rooms.forEach(room => {
+                    let option = document.createElement("option");
+                    option.value = room.room_id;
+                    option.textContent = `Chambre ${room.room_id} - ${room.price}$`;
+                    select.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error("❌ Erreur lors du chargement des chambres :", error);
+            }
+        });
+
+        document.getElementById("confirmReservation").addEventListener("click", async () => {
+            const client_id = localStorage.getItem("client_id");
+            const room_id = document.getElementById("room").value;
+            const reservation_date = new Date().toISOString();
+
+            if (!client_id || !room_id) {
+                alert("❌ Erreur : Informations manquantes !");
+                return;
+            }
+
+            const reservationData = { client_id, room_id, reservation_date };
+
+            try {
+                const response = await fetch("http://localhost:3000/reservation", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(reservationData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert("✅ Réservation confirmée !");
+                    localStorage.clear(); // Nettoyer le stockage après succès
+                } else {
+                    alert("❌ Erreur : " + result.message);
+                }
+            } catch (error) {
+                console.error("❌ Erreur lors de la réservation :", error);
+            }
+        });
+
+        chargerChainesHotels();
+    </script>
+
+</body>
+</html>

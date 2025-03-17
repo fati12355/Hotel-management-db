@@ -1,0 +1,57 @@
+<form id="addressForm">
+    <h2>Étape 1 : Enregistrer l'Adresse</h2>
+    <input type="number" id="civic_number" placeholder="Numéro civique" required>
+    <input type="text" id="postal_code" placeholder="Code postal" required>
+    <input type="text" id="street_name" placeholder="Rue" required>
+    <input type="text" id="town" placeholder="Ville" required>
+    <input type="text" id="province" placeholder="Province" required>
+    <input type="text" id="country" placeholder="Pays" required>
+    <button type="submit">Continuer</button>
+</form>
+
+<script>
+    document.getElementById("addressForm").addEventListener("submit", async (e) => {
+        e.preventDefault(); // Empêcher le rechargement de la page
+    
+        // Récupérer les valeurs du formulaire
+        const addressData = {
+            civic_number: document.getElementById("civic_number").value,
+            postal_code: document.getElementById("postal_code").value,
+            street_name: document.getElementById("street_name").value,
+            town: document.getElementById("town").value,
+            province: document.getElementById("province").value,
+            country: document.getElementById("country").value
+        };
+    
+        console.log("📤 Envoi des données :", addressData); // 🔍 Log avant envoi
+    
+        try {
+            // Envoyer les données au backend
+            const response = await fetch("http://localhost:3000/address", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(addressData)
+            });
+    
+            console.log("✅ Réponse reçue :", response); // 🔍 Log de la réponse du serveur
+    
+            const result = await response.json();
+            
+            if (response.ok) {
+                // Enregistrer l'adresse dans localStorage pour l'utiliser plus tard
+                localStorage.setItem("address_id", result.address_id);
+                alert("✅ Adresse enregistrée avec succès !");
+                
+                // Rediriger vers la deuxième étape (enregistrement du client)
+                window.location.href = "step2.html";
+            } else {
+                console.error("❌ Erreur côté serveur :", result.error);
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error("❌ Erreur lors de l'enregistrement de l'adresse:", error);
+            alert("❌ Impossible d'enregistrer l'adresse. Veuillez réessayer.");
+        }
+    });
+</script>
+    
