@@ -16,7 +16,7 @@ const pool = new Pool({
     port: 5432,
     idleTimeoutMillis: 30000,  // Ferme les connexions inactives après 30 sec
     connectionTimeoutMillis: 5000,  // Attend 5 sec avant de fermer une connexion
-    max: 20,  // Limite à 20 le nombre maximal de connexions
+    max: 40,  // Limite à 20 le nombre maximal de connexions
 });
 pool.query("SELECT NOW()", (err, res) => {
     if (err) {
@@ -56,24 +56,61 @@ app.get("/hotels", async (req, res) => {
         res.status(500).send("Erreur serveur");
     }
 });
-
-app.get("/rooms", async (req, res) => {
-    const hotel_id = parseInt(req.query.hotel_id); // Convertir en nombre
-    
-    if (isNaN(hotel_id)) {
-        return res.status(400).json({ error: "❌ hotel_id invalide" });
-    }
-
+app.get("/roomFilters", async (req, res) => {
     try {
-        const query = "SELECT * FROM public.room WHERE hotel_id = $1 AND status = 'Available' ORDER BY room_id ASC";
-        const result = await pool.query(query, [hotel_id]);
-
+        const result = await pool.query(`
+            SELECT DISTINCT appliances, capacity, extras, existing_damage 
+            FROM room 
+            WHERE status = 'Available'
+        `);
         res.json(result.rows);
     } catch (err) {
-        console.error("❌ Erreur lors de la récupération des chambres:", err);
+        console.error("❌ Erreur lors du chargement des filtres :", err);
         res.status(500).send("Erreur serveur");
     }
 });
+
+
+app.get("/availableRooms", async (req, res) => {
+    const { hotel_id, appliances, capacity, extras, existing_damage } = req.query;
+
+    if (!hotel_id) return res.status(400).json({ error: "❌ hotel_id manquant" });
+
+    try {
+        let query = `SELECT * FROM room WHERE hotel_id = $1 AND status = 'Available'`;
+        let params = [hotel_id];
+        let index = 2;
+
+        if (appliances) {
+            query += ` AND appliances = $${index++}`;
+            params.push(appliances);
+        }
+
+        if (capacity) {
+            query += ` AND capacity = $${index++}`;
+            params.push(capacity);
+        }
+
+        if (extras) {
+            query += ` AND extras = $${index++}`;
+            params.push(extras);
+        }
+
+        if (existing_damage) {
+            query += ` AND existing_damage = $${index++}`;
+            params.push(existing_damage);
+        }
+
+        query += ` ORDER BY room_id ASC`;
+        const result = await pool.query(query, params);
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error("❌ Erreur lors du filtrage des chambres :", err);
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
 
 app.get("/reservation", async (req, res) => {
     try {
