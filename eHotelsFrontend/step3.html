@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Réservation</title>
 </head>
+
 <body>
 
     <h2>Réserver une chambre</h2>
@@ -14,6 +16,26 @@
 
     <label for="hotel">Choisir un hôtel :</label>
     <select id="hotel"></select>
+    <label for="appliances">Sélectionner les équipements :</label>
+    <select id="appliances">
+        <option value="">Tous</option>
+    </select>
+
+    <label for="capacity">Capacité :</label>
+    <select id="capacity">
+        <option value="">Tous</option>
+    </select>
+
+    <label for="extras">Extras :</label>
+    <select id="extras">
+        <option value="">Tous</option>
+    </select>
+
+    <label for="existing_damage">Dommages existants :</label>
+    <select id="existing_damage">
+        <option value="">Tous</option>
+    </select>
+
 
     <label for="room">Choisir une chambre :</label>
     <select id="room"></select>
@@ -21,33 +43,32 @@
     <button id="confirmReservation">Confirmer la réservation</button>
 
     <script>
-        async function chargerChainesHotels() {
+        // Charger les chaînes d'hôtels dès le chargement de la page
+        document.addEventListener("DOMContentLoaded", async () => {
             try {
                 const response = await fetch("http://localhost:3000/hotelChains");
-                const hotelChains = await response.json();
-                let select = document.getElementById("hotelChain");
-                select.innerHTML = "<option value=''>Sélectionner une chaîne</option>";
+                const chains = await response.json();
+                const select = document.getElementById("hotelChain");
 
-                hotelChains.forEach(chain => {
+                chains.forEach(chain => {
                     let option = document.createElement("option");
                     option.value = chain.hotelchain_id;
                     option.textContent = chain.hotel_chain_name;
                     select.appendChild(option);
                 });
-            } catch (error) {
-                console.error("❌ Erreur lors du chargement des chaînes d'hôtels :", error);
+            } catch (err) {
+                console.error("Erreur lors du chargement des chaînes d'hôtels :", err);
             }
-        }
+        });
 
         document.getElementById("hotelChain").addEventListener("change", async (e) => {
-            let hotelchain_id = e.target.value.trim();
-            if (!hotelchain_id) return;
+            let hotelchain_id = e.target.value;
 
             try {
                 const response = await fetch(`http://localhost:3000/hotels?hotelchain_id=${hotelchain_id}`);
                 const hotels = await response.json();
-                let select = document.getElementById("hotel");
-                select.innerHTML = "<option value=''>Sélectionner un hôtel</option>";
+                const select = document.getElementById("hotel");
+                select.innerHTML = "<option value=''>Choisir un hôtel</option>";
 
                 hotels.forEach(hotel => {
                     let option = document.createElement("option");
@@ -56,17 +77,86 @@
                     select.appendChild(option);
                 });
             } catch (error) {
-                console.error("❌ Erreur lors du chargement des hôtels :", error);
+                console.error("Erreur lors du chargement des hôtels :", error);
             }
         });
+
+        async function chargerFiltresChambres() {
+            try {
+                const response = await fetch("http://localhost:3000/roomFilters");
+                const filters = await response.json();
+
+                const appliancesSelect = document.getElementById("appliances");
+                const capacitySelect = document.getElementById("capacity");
+                const extrasSelect = document.getElementById("extras");
+                const damageSelect = document.getElementById("existing_damage");
+
+                filters.forEach(filter => {
+                    if (filter.appliances) {
+                        let option = document.createElement("option");
+                        option.value = filter.appliances;
+                        option.textContent = filter.appliances;
+                        appliancesSelect.appendChild(option);
+                    }
+
+                    if (filter.capacity) {
+                        let option = document.createElement("option");
+                        option.value = filter.capacity;
+                        option.textContent = filter.capacity;
+                        capacitySelect.appendChild(option);
+                    }
+
+                    if (filter.extras) {
+                        let option = document.createElement("option");
+                        option.value = filter.extras;
+                        option.textContent = filter.extras;
+                        extrasSelect.appendChild(option);
+                    }
+
+                    if (filter.existing_damage) {
+                        let option = document.createElement("option");
+                        option.value = filter.existing_damage;
+                        option.textContent = filter.existing_damage;
+                        damageSelect.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error("❌ Erreur lors du chargement des filtres :", error);
+            }
+        }
 
         document.getElementById("hotel").addEventListener("change", async (e) => {
             let hotel_id = e.target.value.trim();
             if (!hotel_id) return;
 
+            chargerFiltresChambres(); // Charger les filtres dès qu'un hôtel est sélectionné
+
+            await chargerChambresDisponibles(hotel_id);
+        });
+
+        document.getElementById("appliances").addEventListener("change", appliquerFiltres);
+        document.getElementById("capacity").addEventListener("change", appliquerFiltres);
+        document.getElementById("extras").addEventListener("change", appliquerFiltres);
+        document.getElementById("existing_damage").addEventListener("change", appliquerFiltres);
+
+        async function appliquerFiltres() {
+            let hotel_id = document.getElementById("hotel").value.trim();
+            if (!hotel_id) return;
+
+            let appliances = document.getElementById("appliances").value;
+            let capacity = document.getElementById("capacity").value;
+            let extras = document.getElementById("extras").value;
+            let existing_damage = document.getElementById("existing_damage").value;
+
+            await chargerChambresDisponibles(hotel_id, appliances, capacity, extras, existing_damage);
+        }
+
+        async function chargerChambresDisponibles(hotel_id, appliances = "", capacity = "", extras = "", existing_damage = "") {
             try {
-                const response = await fetch(`http://localhost:3000/rooms?hotel_id=${hotel_id}`);
+                const url = `http://localhost:3000/availableRooms?hotel_id=${hotel_id}&appliances=${appliances}&capacity=${capacity}&extras=${extras}&existing_damage=${existing_damage}`;
+                const response = await fetch(url);
                 const rooms = await response.json();
+
                 let select = document.getElementById("room");
                 select.innerHTML = "<option value=''>Sélectionner une chambre</option>";
 
@@ -78,9 +168,9 @@
                 });
 
             } catch (error) {
-                console.error("❌ Erreur lors du chargement des chambres :", error);
+                console.error("❌ Erreur lors du chargement des chambres disponibles :", error);
             }
-        });
+        }
 
         document.getElementById("confirmReservation").addEventListener("click", async () => {
             const client_id = localStorage.getItem("client_id");
@@ -104,7 +194,7 @@
                 const result = await response.json();
                 if (response.ok) {
                     alert("✅ Réservation confirmée !");
-                    localStorage.clear(); // Nettoyer le stockage après succès
+                    localStorage.clear();
                 } else {
                     alert("❌ Erreur : " + result.message);
                 }
@@ -113,8 +203,8 @@
             }
         });
 
-        chargerChainesHotels();
     </script>
 
 </body>
+
 </html>
