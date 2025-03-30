@@ -2,9 +2,15 @@
 <html lang="fr">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Réservation</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Réservation | Étape 3</title>
+
+    <!-- Lien vers ton fichier CSS personnalisé -->
+    <link rel="stylesheet" href="css/reservation.css">
+
+    <!-- Optionnel : icône du site -->
+    <link rel="icon" href="img/logo.png" type="image/png">
 </head>
 
 <body>
@@ -15,7 +21,10 @@
     <select id="hotelChain"></select>
 
     <label for="hotel">Choisir un hôtel :</label>
-    <select id="hotel"></select>
+    <select id="hotel">
+        <option>Veuillez choisir une chaîne d'hôtels</option>
+    </select>
+
     <label for="appliances">Sélectionner les équipements :</label>
     <select id="appliances">
         <option value="">Tous</option>
@@ -36,34 +45,64 @@
         <option value="">Tous</option>
     </select>
 
-
     <label for="room">Choisir une chambre :</label>
-    <select id="room"></select>
+    <select id="room">
+        <option>Sélectionnez un hôtel et des filtres</option>
+    </select>
 
     <button id="confirmReservation">Confirmer la réservation</button>
+    <div id="reservationDetails" class="reservation-card" style="display:none;"></div>
+
+
 
     <script>
-        // Charger les chaînes d'hôtels dès le chargement de la page
         document.addEventListener("DOMContentLoaded", async () => {
+            await chargerChainesHoteliers();
+
+            document.getElementById("hotelChain").addEventListener("change", async (e) => {
+                const hotelchain_id = e.target.value;
+                if (!hotelchain_id) return;
+
+                await chargerHotels(hotelchain_id);
+                resetFiltres();
+                resetRooms();
+            });
+
+            document.getElementById("hotel").addEventListener("change", async (e) => {
+                const hotel_id = e.target.value;
+                if (!hotel_id) return;
+
+                resetFiltres();
+                await chargerFiltresChambres();
+                await chargerChambresDisponibles(hotel_id);
+            });
+
+            const filtres = ["appliances", "capacity", "extras", "existing_damage"];
+            filtres.forEach(id => {
+                document.getElementById(id).addEventListener("change", appliquerFiltres);
+            });
+
+            document.getElementById("confirmReservation").addEventListener("click", confirmerReservation);
+        });
+
+        async function chargerChainesHoteliers() {
             try {
                 const response = await fetch("http://localhost:3000/hotelChains");
                 const chains = await response.json();
                 const select = document.getElementById("hotelChain");
 
                 chains.forEach(chain => {
-                    let option = document.createElement("option");
+                    const option = document.createElement("option");
                     option.value = chain.hotelchain_id;
                     option.textContent = chain.hotel_chain_name;
                     select.appendChild(option);
                 });
             } catch (err) {
-                console.error("Erreur lors du chargement des chaînes d'hôtels :", err);
+                console.error("Erreur chargement des chaînes :", err);
             }
-        });
+        }
 
-        document.getElementById("hotelChain").addEventListener("change", async (e) => {
-            let hotelchain_id = e.target.value;
-
+        async function chargerHotels(hotelchain_id) {
             try {
                 const response = await fetch(`http://localhost:3000/hotels?hotelchain_id=${hotelchain_id}`);
                 const hotels = await response.json();
@@ -76,109 +115,94 @@
                     option.textContent = hotel.email_address;
                     select.appendChild(option);
                 });
-            } catch (error) {
-                console.error("Erreur lors du chargement des hôtels :", error);
+            } catch (err) {
+                console.error("Erreur chargement des hôtels :", err);
             }
-        });
+        }
 
         async function chargerFiltresChambres() {
             try {
                 const response = await fetch("http://localhost:3000/roomFilters");
                 const filters = await response.json();
 
-                const appliancesSelect = document.getElementById("appliances");
-                const capacitySelect = document.getElementById("capacity");
-                const extrasSelect = document.getElementById("extras");
-                const damageSelect = document.getElementById("existing_damage");
-
-                filters.forEach(filter => {
-                    if (filter.appliances) {
-                        let option = document.createElement("option");
-                        option.value = filter.appliances;
-                        option.textContent = filter.appliances;
-                        appliancesSelect.appendChild(option);
-                    }
-
-                    if (filter.capacity) {
-                        let option = document.createElement("option");
-                        option.value = filter.capacity;
-                        option.textContent = filter.capacity;
-                        capacitySelect.appendChild(option);
-                    }
-
-                    if (filter.extras) {
-                        let option = document.createElement("option");
-                        option.value = filter.extras;
-                        option.textContent = filter.extras;
-                        extrasSelect.appendChild(option);
-                    }
-
-                    if (filter.existing_damage) {
-                        let option = document.createElement("option");
-                        option.value = filter.existing_damage;
-                        option.textContent = filter.existing_damage;
-                        damageSelect.appendChild(option);
-                    }
-                });
-            } catch (error) {
-                console.error("❌ Erreur lors du chargement des filtres :", error);
+                remplirFiltre("appliances", filters.map(f => f.appliances));
+                remplirFiltre("capacity", filters.map(f => f.capacity));
+                remplirFiltre("extras", filters.map(f => f.extras));
+                remplirFiltre("existing_damage", filters.map(f => f.existing_damage));
+            } catch (err) {
+                console.error("Erreur filtres chambres :", err);
             }
         }
 
-        document.getElementById("hotel").addEventListener("change", async (e) => {
-            let hotel_id = e.target.value.trim();
-            if (!hotel_id) return;
+        function remplirFiltre(id, valeurs) {
+            const select = document.getElementById(id);
+            select.innerHTML = "<option value=''>Tous</option>";
+            [...new Set(valeurs)].filter(Boolean).forEach(val => {
+                const opt = document.createElement("option");
+                opt.value = val;
+                opt.textContent = val;
+                select.appendChild(opt);
+            });
+        }
 
-            chargerFiltresChambres(); // Charger les filtres dès qu'un hôtel est sélectionné
+        function resetFiltres() {
+            ["appliances", "capacity", "extras", "existing_damage"].forEach(id => {
+                document.getElementById(id).innerHTML = "<option value=''>Tous</option>";
+            });
+        }
 
-            await chargerChambresDisponibles(hotel_id);
-        });
-
-        document.getElementById("appliances").addEventListener("change", appliquerFiltres);
-        document.getElementById("capacity").addEventListener("change", appliquerFiltres);
-        document.getElementById("extras").addEventListener("change", appliquerFiltres);
-        document.getElementById("existing_damage").addEventListener("change", appliquerFiltres);
+        function resetRooms() {
+            document.getElementById("room").innerHTML = "<option value=''>Sélectionner une chambre</option>";
+        }
 
         async function appliquerFiltres() {
-            let hotel_id = document.getElementById("hotel").value.trim();
-            if (!hotel_id) return;
+            const hotel_id = document.getElementById("hotel").value;
+            if (!hotel_id || hotel_id === "undefined") {
+                console.warn("⚠️ hotel_id manquant, filtre ignoré");
+                return;
+            }
 
-            let appliances = document.getElementById("appliances").value;
-            let capacity = document.getElementById("capacity").value;
-            let extras = document.getElementById("extras").value;
-            let existing_damage = document.getElementById("existing_damage").value;
+            const appliances = document.getElementById("appliances").value;
+            const capacity = document.getElementById("capacity").value;
+            const extras = document.getElementById("extras").value;
+            const existing_damage = document.getElementById("existing_damage").value;
 
             await chargerChambresDisponibles(hotel_id, appliances, capacity, extras, existing_damage);
         }
 
+
         async function chargerChambresDisponibles(hotel_id, appliances = "", capacity = "", extras = "", existing_damage = "") {
             try {
-                const url = `http://localhost:3000/availableRooms?hotel_id=${hotel_id}&appliances=${appliances}&capacity=${capacity}&extras=${extras}&existing_damage=${existing_damage}`;
+                const url = `http://localhost:3000/availableRooms?hotel_id=${hotel_id}&appliances=${encodeURIComponent(appliances)}&capacity=${capacity}&extras=${encodeURIComponent(extras)}&existing_damage=${encodeURIComponent(existing_damage)}`;
                 const response = await fetch(url);
                 const rooms = await response.json();
 
-                let select = document.getElementById("room");
+                const select = document.getElementById("room");
                 select.innerHTML = "<option value=''>Sélectionner une chambre</option>";
 
+                if (!Array.isArray(rooms)) {
+                    console.error("⚠️ Format invalide reçu pour les chambres :", rooms);
+                    return;
+                }
+
                 rooms.forEach(room => {
-                    let option = document.createElement("option");
+                    const option = document.createElement("option");
                     option.value = room.room_id;
                     option.textContent = `Chambre ${room.room_id} - ${room.price}$`;
                     select.appendChild(option);
                 });
-
-            } catch (error) {
-                console.error("❌ Erreur lors du chargement des chambres disponibles :", error);
+            } catch (err) {
+                console.error("❌ Erreur chargement chambres :", err);
             }
         }
 
-        document.getElementById("confirmReservation").addEventListener("click", async () => {
+        async function confirmerReservation() {
             const client_id = localStorage.getItem("client_id");
             const room_id = document.getElementById("room").value;
             const reservation_date = new Date().toISOString();
 
             if (!client_id || !room_id) {
-                alert("❌ Erreur : Informations manquantes !");
+                alert("❌ Informations manquantes !");
                 return;
             }
 
@@ -192,19 +216,54 @@
                 });
 
                 const result = await response.json();
+                console.log(" Réponse reçue du backend :", result);
+
                 if (response.ok) {
                     alert("✅ Réservation confirmée !");
-                    localStorage.clear();
+
+                    // ➕ Attendre que l'utilisateur ferme la boîte de dialogue
+                    setTimeout(() => {
+                        const nom = localStorage.getItem("client_name") || "Nom inconnu";
+                        const tel = localStorage.getItem("client_tel") || "Téléphone inconnu";
+                        const chainName = document.getElementById("hotelChain").selectedOptions[0]?.textContent || "Non précisé";
+                        const hotel = document.getElementById("hotel").selectedOptions[0]?.textContent || "Non précisé";
+                        const arrival = localStorage.getItem("arrivalDate") || "Non spécifiée";
+                        const departure = localStorage.getItem("departureDate") || "Non spécifiée";
+                        const reservationDetails = document.getElementById("reservationDetails");
+
+                        reservationDetails.innerHTML = `
+                    <div class="card p-4 shadow" style="background:#f9f9f9;">
+                        <h3 class="mb-3">📋 Détails de votre réservation :</h3>
+                        <ul>
+                            <li><strong>Nom :</strong> ${nom}</li>
+                            <li><strong>Téléphone :</strong> ${tel}</li>
+                            <li><strong>Client ID :</strong> ${client_id}</li>
+                            <li><strong>Chaîne hôtelière :</strong> ${chainName}</li>
+                            <li><strong>Hôtel :</strong> ${hotel}</li>
+                            <li><strong>Chambre :</strong> ${room_id}</li>
+                            <li><strong>Réservation ID :</strong> ${result.reservation_id || "N/A"}</li>
+                            <li><strong>Date d'arrivée :</strong> ${arrival}</li>
+                            <li><strong>Date de départ :</strong> ${departure}</li>
+                            <li><strong>Date de réservation :</strong> ${new Date(reservation_date).toLocaleString()}</li>
+                        </ul>
+                    </div>
+                `;
+                        reservationDetails.style.display = "block";
+
+                        localStorage.clear();
+                    }, 100);
+
                 } else {
-                    alert("❌ Erreur : " + result.message);
+                    alert("❌ Erreur : " + (result.message || "Réservation échouée."));
                 }
-            } catch (error) {
-                console.error("❌ Erreur lors de la réservation :", error);
+
+            } catch (err) {
+                console.error("❌ Erreur lors de la réservation :", err);
+                alert("❌ Une erreur est survenue lors de la réservation.");
             }
-        });
+        }
 
     </script>
-
 </body>
 
 </html>
