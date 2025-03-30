@@ -14,9 +14,9 @@ const pool = new Pool({
     database: "postgres",
     password: "Hotel4$$$gamelle",
     port: 5432,
-    idleTimeoutMillis: 30000,  // Ferme les connexions inactives après 30 sec
+    idleTimeoutMillis: 3000,  // Ferme les connexions inactives après 30 sec
     connectionTimeoutMillis: 5000,  // Attend 5 sec avant de fermer une connexion
-    max: 40,  // Limite à 20 le nombre maximal de connexions
+    max: 100,  // Limite à 100 le nombre maximal de connexions
 });
 pool.query("SELECT NOW()", (err, res) => {
     if (err) {
@@ -41,21 +41,33 @@ app.get("/hotelChains", async (req, res) => {
 });
 
 app.get("/hotels", async (req, res) => {
-    const hotelchain_id = Number(req.query.hotelchain_id);
+    const hotelchain_id = Number(req.query.hotelchain_id);// ✅ Déclarer la variable correctement
 
-
-    
     if (isNaN(hotelchain_id)) {
         return res.status(400).json({ error: "hotelchain_id invalide" });
     }
 
     try {
-        const result = await pool.query("SELECT * FROM hotel WHERE hotelchain_id = $1", [hotelchain_id]);
-        res.json(result.rows);
+        const result = await pool.query(`
+            SELECT 
+                h.hotel_id,
+              h.email_address, 
+              a.street_name, 
+              a.town, 
+              a.province, 
+              a.country
+            FROM hotel h
+            JOIN address a ON h.address_id = a.address_id
+            WHERE h.hotelchain_id = $1
+        `, [hotelchain_id]);
+
+        res.json(result.rows); // ✅ Retourner les bons résultats
     } catch (err) {
+        console.error("Erreur lors de la récupération des hôtels :", err);
         res.status(500).send("Erreur serveur");
     }
 });
+
 app.get("/roomFilters", async (req, res) => {
     try {
         const result = await pool.query(`
@@ -214,12 +226,22 @@ app.post("/reservation", async (req, res) => {
         }
 
         // Insérer la réservation
-        await pool.query(
-            "INSERT INTO reservation (client_id, room_id, reservation_date, reservation_status) VALUES ($1, $2, $3, 'Pending')",
+        // ✅ On récupère reservation_id avec RETURNING
+        const insert = await pool.query(
+            "INSERT INTO reservation (client_id, room_id, reservation_date, reservation_status) VALUES ($1, $2, $3, 'Pending') RETURNING reservation_id",
             [client_id, room_id, reservation_date]
         );
+        
+        const reservation_id = insert.rows[0].reservation_id;
+        // ✅ Update du statut
+        await pool.query("UPDATE room SET status = 'Occupied' WHERE room_id = $1", [room_id]);
 
-        res.json({ message: "✅ Réservation confirmée !" });
+        // ✅ Retour avec reservation_id
+        res.json({ message: "✅ Réservation confirmée !", reservation_id: insert.rows[0].reservation_id });
+
+ 
+
+
 
     } catch (err) {
         console.error("❌ Erreur lors de la réservation:", err);
