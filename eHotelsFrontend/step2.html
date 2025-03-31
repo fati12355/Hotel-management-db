@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enregistrement du Client | Étape 2</title>
+
+    <!-- Lien vers ton fichier CSS personnalisé -->
+    <link rel="stylesheet" href="css/reservation.css">
+
+    <!-- Optionnel : icône du site -->
+    <link rel="icon" href="img/logo.png" type="image/png">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Étape 2 : Informations Personnelles</h2>
+        <p style="text-align: center; margin-bottom: 30px;">
+            Veuillez remplir vos informations personnelles pour commencer la réservation.
+        </p>
+        <form id="clientForm">
+            <input type="text" id="full_name" placeholder="Nom complet" required>
+            <input type="text" id="nas" placeholder="Numéro NAS (4-8 chiffres)" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="tel" id="phone" placeholder="Téléphone (10 chiffres)" required>
+            <button type="submit">Continuer</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById("clientForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const full_name = document.getElementById("full_name").value.trim();
+            const nas = document.getElementById("nas").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const phone = document.getElementById("phone").value.trim();
+            const address_id = Number(localStorage.getItem("address_id"));
+
+            // 🔒 Vérifications
+            const nasRegex = /^\d{4,8}$/;
+            const phoneRegex = /^\d{10}$/;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!nasRegex.test(nas)) {
+                alert("❌ Le NAS doit contenir entre 4 et 8 chiffres.");
+                return;
+            }
+
+            if (!phoneRegex.test(phone)) {
+                alert("❌ Le téléphone doit contenir exactement 10 chiffres.");
+                return;
+            }
+
+            if (!emailRegex.test(email)) {
+                alert("❌ L'adresse email n'est pas valide.");
+                return;
+            }
+
+            if (!address_id) {
+                alert("❌ Erreur : Aucun ID d'adresse trouvé !");
+                return;
+            }
+
+            const clientData = {
+                full_name,
+                nas,
+                email,
+                phone,
+                address_id
+            };
+
+            try {
+                const response = await fetch("http://localhost:3000/client", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(clientData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem("client_id", result.client_id);
+                    localStorage.setItem("client_name", full_name);
+                    localStorage.setItem("client_tel", phone);
+                    alert("✅ Client enregistré avec succès !");
+                    window.location.href = "step3.html";
+                } else {
+                    alert("❌ Erreur : " + result.message);
+                }
+
+            } catch (error) {
+                console.error("❌ Erreur lors de l'enregistrement du client :", error);
+            }
+        });
+    </script>
+
+</body>
+</html>

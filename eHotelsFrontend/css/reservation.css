@@ -1,0 +1,124 @@
+  .reservation-card {
+    background-color: #fefefe;
+    border: 1px solid #ddd;
+    border-left: 5px solid #dc3545;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 25px;
+    max-width: 600px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    font-family: "Segoe UI", sans-serif;
+    color: #333;
+  }
+
+  .reservation-card h3 {
+    color: #dc3545;
+    margin-bottom: 15px;
+  }
+
+  .reservation-card ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  .reservation-card li {
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+
+  .reservation-card strong {
+    color: #000;
+  }
+  /* reservation.css */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: url('../images/hotel-bg.png') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+}
+
+.container {
+    background: rgba(0, 0, 0, 0.7);
+    margin: 5% auto;
+    padding: 40px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 700px;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
+h2 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #ff0000;
+}
+
+label {
+    display: block;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+select, input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: none;
+    font-size: 1rem;
+}
+
+button {
+    background-color: #ff0000;
+    color: white;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    margin-top: 30px;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #cc0000;
+}
+
+#reservationDetails {
+    background: white;
+    color: black;
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 8px;
+}
+select {
+    width: 80%;
+    max-width: 500px;
+    padding: 10px 14px;
+    margin: 15px auto;
+    display: block;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    color: #333;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%204%205'%3E%3Cpath%20fill='black'%20d='M2%205L0%200h4z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+    cursor: pointer;
+  }
+  
+  select:focus {
+    border-color: #f44336;
+    box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2);
+    outline: none;
+  }
+  
+
