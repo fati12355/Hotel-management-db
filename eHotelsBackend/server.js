@@ -31,7 +31,7 @@ app.get("/hotelChains", async (req, res) => {
         res.status(500).send("Erreur serveur");
     }
 });
-
+/*
 app.get("/hotels", async (req, res) => {
     const hotelchain_id = Number(req.query.hotelchain_id);
 
@@ -48,6 +48,7 @@ app.get("/hotels", async (req, res) => {
         res.status(500).send("Erreur serveur");
     }
 });
+*/
 
 app.get("/rooms", async (req, res) => {
     const hotel_id = parseInt(req.query.hotel_id); // Convertir en nombre
@@ -101,8 +102,82 @@ app.post("/reservation", async (req, res) => {
     }
 });
 
+// Route pour récupérer la liste des hôtels dans suppressions hotel
+app.get('/hotels', async (req, res) => {
+    try {
+      const result = await pool.query(`SELECT hotel_id, email_address FROM hotel`);
+      res.json(result.rows);
+    } catch (err) {
+      console.error("❌ Erreur lors de la récupération des hôtels :", err.message);
+      res.status(500).json({ error: "Erreur serveur : " + err.message });
+    }
+  });
+
+// delete hotel
+app.delete('/delete-hotel/:id', async (req, res) => {
+    const hotelId = req.params.id;
+    console.log("🔹 Requête DELETE reçue pour hotelId :", hotelId); // Debugging
+
+
+    try {
+        const result = await pool.query(
+            'DELETE FROM hotel WHERE hotel_id = $1 RETURNING *',
+            [hotelId]  
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ success: false, message: "❌ Hôtel introuvable ou déjà supprimé." });
+        }
+
+        console.log("✅ Hôtel supprimé avec succès :", hotelId);
+        res.json({ success: true, message: "✅ Hôtel supprimé avec succès !" });
+
+    } catch (err) {
+        console.error("❌ Erreur lors de la suppression :", err.message);
+        res.status(500).json({ success: false, message: "Erreur serveur : " + err.message });
+    }
+});
 
 
 app.listen(port, () => {
-    console.log(`🚀 Serveur backend démarré sur http://localhost:${port}`);
+    console.log(`✅ Serveur lancé sur http://localhost:${port}`);
 });
+
+// Route d'inscription aux employés
+app.post('/signup', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: "Email et mot de passe requis" });
+  
+    try {
+      const result = await pool.query(
+        "INSERT INTO employee_account (email, password) VALUES ($1, $2) RETURNING *",
+        [email, password] 
+      );
+      res.json({ success: true, message: "Compte créé avec succès", user: result.rows[0] });
+    } catch (err) {
+      console.error("Erreur d'inscription :", err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+  // route pour se connecter aux employés
+  app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: "Email et mot de passe requis" });
+  
+    try {
+      const result = await pool.query(
+        "SELECT * FROM employee_account WHERE email = $1 AND password = $2",
+        [email, password]
+      );
+  
+      if (result.rows.length === 0) {
+        return res.status(401).json({ success: false, message: "Identifiants invalides" });
+      }
+  
+      res.json({ success: true, message: "Connexion réussie", user: result.rows[0] });
+    } catch (err) {
+      console.error("Erreur de connexion :", err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+  
