@@ -102,6 +102,26 @@
     </div>
     <script src="js/employee.js" defer></script>
 
+    <h3>Gestion des Locations</h3>
+      <div>
+      <label for="client_id">ID Client :</label>
+      <input type="number" id="client_id" placeholder="Entrez l'ID du client" />
+
+      <label for="room_id">ID Chambre :</label>
+      <input type="number" id="room_id" placeholder="Entrez l'ID de la chambre" />
+
+      <label for="employee_id">ID Employé :</label>
+      <input type="number" id="employee_id" placeholder="Entrez votre ID employé" />
+
+      <label for="reservation_id">ID Réservation (optionnel) :</label>
+      <input type="number" id="reservation_id" placeholder="Entrez l'ID de la réservation" />
+
+      <label for="payment_amount">Montant du Paiement :</label>
+      <input type="number" id="payment_amount" placeholder="Entrez le montant payé" />
+
+      <button onclick="rentRoom()">Louer la Chambre</button>
+      </div>
+
     <button onclick="logout()">Se déconnecter</button>
 </body>
 <script>

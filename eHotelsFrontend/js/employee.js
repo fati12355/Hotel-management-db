@@ -124,3 +124,45 @@ function logout() {
   sessionStorage.removeItem("employeeLoggedIn");
   window.location.href = "index.html";
 }
+
+async function rentRoom() {
+  const client_id = document.getElementById("client_id").value;
+  const room_id = document.getElementById("room_id").value;
+  const employee_id = document.getElementById("employee_id").value;
+  const reservation_id = document.getElementById("reservation_id").value || null;
+  const payment_amount = document.getElementById("payment_amount").value;
+
+  if (!client_id || !room_id || !employee_id || !payment_amount) {
+    alert("❌ Veuillez remplir tous les champs obligatoires !");
+    return;
+  }
+
+  const payload = {
+    client_id: parseInt(client_id),
+    room_id: parseInt(room_id),
+    employee_id: parseInt(employee_id),
+    reservation_id: reservation_id ? parseInt(reservation_id) : null,
+    payment_amount: parseFloat(payment_amount),
+  };
+
+  try {
+    const response = await fetch("http://localhost:3000/rent-room", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      alert(result.message);
+    } else {
+      alert(`❌ Erreur : ${result.error}`);
+    }
+  } catch (err) {
+    console.error("❌ Erreur lors de la location :", err);
+    alert("❌ Une erreur est survenue. Veuillez réessayer.");
+  }
+}

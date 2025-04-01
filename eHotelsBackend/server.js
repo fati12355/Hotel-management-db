@@ -332,4 +332,60 @@ app.post('/signup', async (req, res) => {
       res.status(500).json({ success: false, message: err.message });
     }
   });
-  
+
+  // Route pour transformer une réservation en location ou effectuer une location directe
+    app.post('/rent-room', async (req, res) => {
+        const { client_id, room_id, employee_id, reservation_id, payment_amount } = req.body;
+
+        if (!client_id || !room_id || !employee_id || !payment_amount) {
+            return res.status(400).json({ error: "❌ Données manquantes !" });
+        }
+
+        try {
+            // Si une réservation est fournie, vérifier qu'elle existe et est valide
+            if (reservation_id) {
+                const reservationCheck = await pool.query(
+                    "SELECT * FROM reservation WHERE reservation_id = $1 AND client_id = $2 AND room_id = $3 AND reservation_status = 'Pending'",
+                    [reservation_id, client_id, room_id]
+                );
+
+                if (reservationCheck.rows.length === 0) {
+                    return res.status(400).json({ error: "❌ Réservation invalide ou déjà traitée." });
+                }
+
+                // Mettre à jour le statut de la réservation
+                await pool.query(
+                    "UPDATE reservation SET reservation_status = 'Completed' WHERE reservation_id = $1",
+                    [reservation_id]
+                );
+            } else {
+                // Vérifier si la chambre est disponible pour une location directe
+                const roomCheck = await pool.query(
+                    "SELECT * FROM room WHERE room_id = $1 AND status = 'Available'",
+                    [room_id]
+                );
+
+                if (roomCheck.rows.length === 0) {
+                    return res.status(400).json({ error: "❌ Chambre non disponible pour une location directe." });
+                }
+            }
+
+            // Insérer la location
+            const rentalInsert = await pool.query(
+                "INSERT INTO rental (client_id, room_id, employee_id, rental_date, payment_amount) VALUES ($1, $2, $3, NOW(), $4) RETURNING rental_id",
+                [client_id, room_id, employee_id, payment_amount]
+            );
+
+            const rental_id = rentalInsert.rows[0].rental_id;
+
+            // Mettre à jour le statut de la chambre
+            await pool.query("UPDATE room SET status = 'Occupied' WHERE room_id = $1", [room_id]);
+
+            res.json({ message: "✅ Location effectuée avec succès !", rental_id });
+
+        } catch (err) {
+            console.error("❌ Erreur lors de la gestion de la location :", err.message);
+            res.status(500).json({ error: "Erreur serveur", details: err.message });
+        }
+    });
+    
