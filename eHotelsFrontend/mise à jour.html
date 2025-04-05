@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espace Employé</title>
+    <title>Mise a jour/title>
     
      <!-- basic -->
      <meta charset="utf-8">
@@ -20,7 +20,7 @@
      <link rel="stylesheet" href="css/bootstrap.min.css">
      <!-- style css -->
      <link rel="stylesheet" href="css/style.css">
-     <link rel="stylesheet" href="css/employee.css">
+     <link rel="stylesheet" href="css/miseAjour.css">
      <!-- Responsive-->
      <link rel="stylesheet" href="css/responsive.css">
      <!-- fevicon -->
@@ -86,24 +86,72 @@
            <div class="row">
               <div class="col-md-12">
                  <div class="title">
-                    <h2>Portail employé</h2>
+                    <h2>Mise à jour</h2>
                  </div>
               </div>
            </div>
         </div>
      </div>
     </br>
-    <h2> Supprimer un Hôtel</h2>
-    <div>
+    
+    <section class="form-section">
+      <h2>Supprimer un Hôtel</h2>
       <select id="Hotel_id">
         <option value="">-- Choisissez un hôtel --</option>
       </select>
-      <button onclick="deleteHotel()"> Supprimer </button>
-    </div>
-    <script src="js/employee.js" defer></script>
+      <button class="supprimer-btn" onclick="deleteHotel()">Supprimer</button>
+    </section>
+   </br>
 
-    <button onclick="logout()">Se déconnecter</button>
+   <section class="form-section">
+      <h2>Ajouter un employé</h2>
+      <form onsubmit="addEmployee(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="full_name">Nom complet :</label>
+            <input type="text" id="full_name" required>
+          </div>
+          <div class="form-group">
+            <label for="NAS">NAS :</label>
+            <input type="text" id="NAS" required>
+          </div>
+        </div>
+    
+        <div class="form-row">
+          <div class="form-group">
+            <label for="Position">Poste :</label>
+            <input type="text" id="Position" required>
+          </div>
+          <div class="form-group">
+            <label for="hotelEmail">Hôtel :</label>
+            <select id="hotelEmail" required>
+              <option value="">Sélectionnez un hôtel</option>
+            </select>
+          </div>
+        </div>
+    
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addressDisplay">Adresse :</label>
+            <select id="addressDisplay" required>
+              <option value="">Sélectionnez une adresse</option>
+            </select>
+          </div>
+        </div>
+    
+        <button type="submit">Ajouter</button>
+      </form>
+    </section>
+   
+   
+   <script src="js/employee.js" defer></script>
+   
+  <button onclick="logout()">Se déconnecter</button>
 </body>
+</html>
+
+  
+    <!--script for log in-->  
 <script>
    const isAuthenticated = sessionStorage.getItem("employeeLoggedIn");
  
@@ -111,8 +159,8 @@
       const requestedPage = window.location.href;
      sessionStorage.setItem("redirectAfterLogin", requestedPage);
      window.location.href = "login.html";
-   }
+   }  
  </script>
- 
+ </body>
 </html>
 

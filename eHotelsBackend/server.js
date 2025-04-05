@@ -284,13 +284,6 @@ app.post("/reservation", async (req, res) => {
         res.status(500).json({ error: "Erreur serveur" });
     }
 });
-
-
-
-
-
-
-
 app.listen(port, () => {
     console.log(`✅ Serveur lancé sur http://localhost:${port}`);
 });
@@ -329,6 +322,52 @@ app.post('/signup', async (req, res) => {
       res.json({ success: true, message: "Connexion réussie", user: result.rows[0] });
     } catch (err) {
       console.error("Erreur de connexion :", err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+  
+  // 🔁 Récupérer toutes les adresses (pour formulaire employé)
+app.get('/addresses', async (req, res) => {
+    try {
+      const result = await pool.query(`SELECT address_id, civic_number, street_name, town FROM address ORDER BY address_id ASC`);
+      res.json(result.rows);
+    } catch (err) {
+      console.error("❌ Erreur lors de la récupération des adresses :", err.message);
+      res.status(500).json({ error: "Erreur serveur : " + err.message });
+    }
+  });
+
+  // Récupérer toutes les adresses disponibles
+app.get("/addresses", async (req, res) => {
+    try {
+      const result = await pool.query(
+        "SELECT address_id, civic_number, street_name, town FROM address ORDER BY address_id ASC"
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des adresses:", err);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  });
+  
+  // Ajouter un employé
+  app.post("/add-employee", async (req, res) => {
+    const { full_name, NAS, Position, Hotel_Id, Address_Id } = req.body;
+  
+    if (!full_name || !NAS || !Position || !Hotel_Id || !Address_Id) {
+      return res.status(400).json({ success: false, message: "Tous les champs sont requis." });
+    }
+  
+    try {
+      const result = await pool.query(
+        `INSERT INTO employee (full_name, NAS, Position, Hotel_Id, Address_Id)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [full_name, NAS, Position, Hotel_Id, Address_Id]
+      );
+  
+      res.json({ success: true, message: "Employé ajouté", data: result.rows[0] });
+    } catch (err) {
+      console.error("Erreur lors de l'ajout de l'employé :", err.message);
       res.status(500).json({ success: false, message: err.message });
     }
   });
