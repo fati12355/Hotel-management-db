@@ -133,6 +133,43 @@ app.get("/reservation", async (req, res) => {
         res.status(500).send("Erreur serveur");
     }
 });
+app.post("/rent", async (req, res) => {
+    const { employee_id, reservation_id, room_id, rent_date } = req.body;
+
+    try {
+        //  Vérifier si la chambre est disponible
+        const roomCheck = await pool.query(
+            "SELECT * FROM room WHERE room_id = $1 AND status = 'Available'",
+            [room_id]
+        );
+
+        if (roomCheck.rows.length === 0) {
+            return res.status(400).json({ message: "❌ La chambre est déjà occupée ou n'existe pas." });
+        }
+
+        //  Insérer la location (même si reservation_id est null)
+        const insert = await pool.query(
+            "INSERT INTO rent (employee_id, reservation_id, room_id, rent_date) VALUES ($1, $2, $3, $4) RETURNING rent_id",
+            [employee_id, reservation_id || null, room_id, rent_date]
+        );
+
+        //  Mettre à jour le statut de la chambre si reservation_id est null
+        if (!reservation_id) {
+            await pool.query(
+                "UPDATE room SET status = 'Occupied' WHERE room_id = $1",
+                [room_id]
+            );
+        }
+
+        res.json({ message: "✅ Location confirmée !", rent_id: insert.rows[0].rent_id });
+
+    } catch (err) {
+        console.error("❌ Erreur lors de l'enregistrement de la location :", err);
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+
 
 app.post("/address", async (req, res) => {
     console.log("📥 Données reçues :", req.body);
