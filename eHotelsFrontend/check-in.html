@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enregistrement des clients | eHotels</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/check-in.css">
+</head>
+<body>
+    <div class="back_re">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="title">
+                        <h2>Enregistrement des clients</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <!-- Section 1: Client avec réservation -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Client avec réservation</h3>
+            </div>
+            <div class="card-body">
+                <form id="reservationCheckInForm">
+                    <div class="form-group">
+                        <label for="reservationId">Numéro de réservation :</label>
+                        <input type="text" class="form-control" id="reservationId" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Transformer en location</button>
+                </form>
+                <div id="reservationDetails" style="display: none;" class="mt-4"></div>
+            </div>
+        </div>
+
+        <!-- Section 2: Client sans réservation -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Nouveau client sans réservation</h3>
+            </div>
+            <div class="card-body">
+                <form id="newClientForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="fullName">Nom complet :</label>
+                                <input type="text" class="form-control" id="fullName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="nas">NAS :</label>
+                                <input type="text" class="form-control" id="nas" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="hotelId">Hôtel :</label>
+                                <select class="form-control" id="hotelId" required>
+                                    <option value="" disabled selected>-- Sélectionnez un hôtel --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="appliances">Équipements :</label>
+                                <select class="form-control" id="appliances">
+                                    <option value="">Tous</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="capacity">Capacité :</label>
+                                <select class="form-control" id="capacity">
+                                    <option value="">Tous</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="extras">Extras :</label>
+                                <select class="form-control" id="extras">
+                                    <option value="">Tous</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="existing_damage">Dommages existants :</label>
+                                <select class="form-control" id="existing_damage">
+                                    <option value="">Tous</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="roomId">Chambre :</label>
+                                <select class="form-control" id="roomId" required>
+                                    <option value="" disabled selected>-- Sélectionnez d'abord un hôtel --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="mt-3">Adresse</h4>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="civicNumber">Numéro civique :</label>
+                                <input type="text" class="form-control" id="civicNumber" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="postalCode">Code postal :</label>
+                                <input type="text" class="form-control" id="postalCode" required>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="streetName">Nom de rue :</label>
+                                <input type="text" class="form-control" id="streetName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="town">Ville :</label>
+                                <input type="text" class="form-control" id="town" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="province">Province :</label>
+                                <input type="text" class="form-control" id="province" required>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="country">Pays :</label>
+                                <input type="text" class="form-control" id="country" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success mt-3">Enregistrer le client</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="js/check-in.js"></script>
+</body>
+</html> 
