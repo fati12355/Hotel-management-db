@@ -39,7 +39,7 @@ app.get("/hotelChains", async (req, res) => {
         res.status(500).send("Erreur serveur");
     }
 });
-
+/*
 app.get("/hotels", async (req, res) => {
     const hotelchain_id = Number(req.query.hotelchain_id);// ✅ Déclarer la variable correctement
 
@@ -67,6 +67,10 @@ app.get("/hotels", async (req, res) => {
         res.status(500).send("Erreur serveur");
     }
 });
+
+*/
+
+
 
 app.get("/roomFilters", async (req, res) => {
     try {
@@ -210,6 +214,41 @@ app.post("/address", async (req, res) => {
     }
 });
 
+// Route pour récupérer la liste des hôtels dans suppressions hotel
+app.get('/hotels', async (req, res) => {
+    try {
+      const result = await pool.query(`SELECT hotel_id, email_address FROM hotel`);
+      res.json(result.rows);
+    } catch (err) {
+      console.error("❌ Erreur lors de la récupération des hôtels :", err.message);
+      res.status(500).json({ error: "Erreur serveur : " + err.message });
+    }
+  });
+
+// delete hotel
+app.delete('/delete-hotel/:id', async (req, res) => {
+    const hotelId = req.params.id;
+    console.log("🔹 Requête DELETE reçue pour hotelId :", hotelId); // Debugging
+
+
+    try {
+        const result = await pool.query(
+            'DELETE FROM hotel WHERE hotel_id = $1 RETURNING *',
+            [hotelId]  
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ success: false, message: "❌ Hôtel introuvable ou déjà supprimé." });
+        }
+
+        console.log("✅ Hôtel supprimé avec succès :", hotelId);
+        res.json({ success: true, message: "✅ Hôtel supprimé avec succès !" });
+
+    } catch (err) {
+        console.error("❌ Erreur lors de la suppression :", err.message);
+        res.status(500).json({ success: false, message: "Erreur serveur : " + err.message });
+    }
+});
 
 
 
@@ -286,12 +325,159 @@ app.post("/reservation", async (req, res) => {
     }
 });
 
+// Endpoint pour l'enregistrement d'un client avec réservation existante
+app.post("/api/reservations/check-in", async (req, res) => {
+    const { reservationId } = req.body;
+    
+    // Temporairement, on utilise un ID d'employé fixe pour les tests
+    // À remplacer par l'authentification réelle plus tard
+    const employeeId = 1; // ID d'employé temporaire pour les tests
 
+    if (!reservationId) {
+        return res.status(400).json({ error: "ID de réservation manquant" });
+    }
 
+    try {
+        // Vérifier si la réservation existe et est valide
+        const reservationCheck = await pool.query(
+            `SELECT r.*, rm.room_id, rm.hotel_id 
+             FROM reservation r
+             JOIN room rm ON r.room_id = rm.room_id
+             WHERE r.reservation_id = $1 AND r.reservation_status = 'Pending'`,
+            [reservationId]
+        );
 
+        if (reservationCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Réservation non trouvée ou non confirmée" });
+        }
 
+        const reservation = reservationCheck.rows[0];
 
+        // Créer l'enregistrement
+        const registrationResult = await pool.query(
+            `INSERT INTO registration (employee_id, client_id, registration_date)
+             VALUES ($1, $2, CURRENT_TIMESTAMP)
+             RETURNING registration_id`,
+            [employeeId, reservation.client_id]
+        );
+
+        // Créer la location
+        const rentResult = await pool.query(
+            `INSERT INTO rent (employee_id, reservation_id, room_id, rent_date)
+             VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+             RETURNING rent_id`,
+            [employeeId, reservationId, reservation.room_id]
+        );
+
+        // Mettre à jour le statut de la chambre
+        await pool.query(
+            `UPDATE room SET status = 'Occupied' WHERE room_id = $1`,
+            [reservation.room_id]
+        );
+
+        // Mettre à jour le statut de la réservation
+        await pool.query(
+            `UPDATE reservation SET reservation_status = 'Checked-in' WHERE reservation_id = $1`,
+            [reservationId]
+        );
+
+        res.json({
+            message: "Client enregistré avec succès",
+            registrationId: registrationResult.rows[0].registration_id,
+            rentId: rentResult.rows[0].rent_id
+        });
+
+    } catch (err) {
+        console.error("❌ Erreur lors de l'enregistrement du client:", err);
+        res.status(500).json({ error: "Erreur serveur", details: err.message });
+    }
+});
 
 app.listen(port, () => {
-    console.log(`🚀 Serveur backend démarré sur http://localhost:${port}`);
+    console.log(`✅ Serveur lancé sur http://localhost:${port}`);
 });
+
+// Route d'inscription aux employés
+app.post('/signup', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: "Email et mot de passe requis" });
+  
+    try {
+      const result = await pool.query(
+        "INSERT INTO employee_account (email, password) VALUES ($1, $2) RETURNING *",
+        [email, password] 
+      );
+      res.json({ success: true, message: "Compte créé avec succès", user: result.rows[0] });
+    } catch (err) {
+      console.error("Erreur d'inscription :", err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+  // route pour se connecter aux employés
+  app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: "Email et mot de passe requis" });
+  
+    try {
+      const result = await pool.query(
+        "SELECT * FROM employee_account WHERE email = $1 AND password = $2",
+        [email, password]
+      );
+  
+      if (result.rows.length === 0) {
+        return res.status(401).json({ success: false, message: "Identifiants invalides" });
+      }
+  
+      res.json({ success: true, message: "Connexion réussie", user: result.rows[0] });
+    } catch (err) {
+      console.error("Erreur de connexion :", err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+  
+  // 🔁 Récupérer toutes les adresses (pour formulaire employé)
+app.get('/addresses', async (req, res) => {
+    try {
+      const result = await pool.query(`SELECT address_id, civic_number, street_name, town FROM address ORDER BY address_id ASC`);
+      res.json(result.rows);
+    } catch (err) {
+      console.error("❌ Erreur lors de la récupération des adresses :", err.message);
+      res.status(500).json({ error: "Erreur serveur : " + err.message });
+    }
+  });
+
+  // Récupérer toutes les adresses disponibles
+app.get("/addresses", async (req, res) => {
+    try {
+      const result = await pool.query(
+        "SELECT address_id, civic_number, street_name, town FROM address ORDER BY address_id ASC"
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des adresses:", err);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  });
+  
+  // Ajouter un employé
+  app.post("/add-employee", async (req, res) => {
+    const { full_name, NAS, Position, Hotel_Id, Address_Id } = req.body;
+  
+    if (!full_name || !NAS || !Position || !Hotel_Id || !Address_Id) {
+      return res.status(400).json({ success: false, message: "Tous les champs sont requis." });
+    }
+  
+    try {
+      const result = await pool.query(
+        `INSERT INTO employee (full_name, NAS, Position, Hotel_Id, Address_Id)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [full_name, NAS, Position, Hotel_Id, Address_Id]
+      );
+  
+      res.json({ success: true, message: "Employé ajouté", data: result.rows[0] });
+    } catch (err) {
+      console.error("Erreur lors de l'ajout de l'employé :", err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+  
