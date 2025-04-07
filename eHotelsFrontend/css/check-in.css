@@ -1,0 +1,207 @@
+.card {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 15px 20px;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.form-control {
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    padding: 10px 12px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Styles pour les alertes */
+.alert {
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+/* Animation pour les alertes */
+.alert.fade {
+    opacity: 0;
+    transition: opacity 0.15s linear;
+}
+
+.alert.show {
+    opacity: 1;
+}
+
+/* Styles pour les menus déroulants */
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 30px;
+    cursor: pointer;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    transition: all 0.2s ease-in-out;
+}
+
+select.form-control:hover {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.15);
+}
+
+select.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+/* Styles pour les options des menus déroulants */
+select.form-control option {
+    padding: 12px;
+    font-size: 1rem;
+    background-color: #fff;
+}
+
+/* Styles pour les placeholders des menus déroulants */
+select.form-control option[value=""] {
+    color: #6c757d;
+    font-style: italic;
+    background-color: #f8f9fa;
+    font-weight: 500;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 15px;
+    margin-bottom: 5px;
+}
+
+/* Style pour le premier élément non-placeholder */
+select.form-control option:not([value=""]) {
+    color: #212529;
+    font-weight: normal;
+}
+
+/* Style pour les éléments sélectionnés */
+select.form-control option:checked {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+/* Style pour le hover sur les options */
+select.form-control option:hover {
+    background-color: #e9ecef;
+}
+
+/* Style pour le groupe d'options */
+select.form-control optgroup {
+    font-weight: bold;
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+/* Styles pour les titres de section */
+h4.mt-4 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Styles pour les lignes */
+.row {
+    margin-bottom: 15px;
+}
+
+/* Styles pour les colonnes */
+.col-md-3, .col-md-4, .col-md-6, .col-md-12 {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+/* Styles pour les petits écrans */
+@media (max-width: 768px) {
+    .col-md-3, .col-md-4, .col-md-6 {
+        margin-bottom: 15px;
+    }
+}
+
+/* Animation pour les transitions */
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 300ms ease-in;
+}
+
+.fade-exit {
+    opacity: 1;
+}
+
+.fade-exit-active {
+    opacity: 0;
+    transition: opacity 300ms ease-in;
+} 
