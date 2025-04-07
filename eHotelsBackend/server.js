@@ -83,7 +83,10 @@ app.get("/hotels", async (req, res) => {
         res.status(500).send("Erreur serveur");
     }
 });
+
 */
+
+
 
 app.get("/roomFilters", async (req, res) => {
     try {
@@ -157,6 +160,43 @@ app.get("/reservation", async (req, res) => {
         res.status(500).send("Erreur serveur");
     }
 });
+app.post("/rent", async (req, res) => {
+    const { employee_id, reservation_id, room_id, rent_date } = req.body;
+
+    try {
+        //  Vérifier si la chambre est disponible
+        const roomCheck = await pool.query(
+            "SELECT * FROM room WHERE room_id = $1 AND status = 'Available'",
+            [room_id]
+        );
+
+        if (roomCheck.rows.length === 0) {
+            return res.status(400).json({ message: "❌ La chambre est déjà occupée ou n'existe pas." });
+        }
+
+        //  Insérer la location (même si reservation_id est null)
+        const insert = await pool.query(
+            "INSERT INTO rent (employee_id, reservation_id, room_id, rent_date) VALUES ($1, $2, $3, $4) RETURNING rent_id",
+            [employee_id, reservation_id || null, room_id, rent_date]
+        );
+
+        //  Mettre à jour le statut de la chambre si reservation_id est null
+        if (!reservation_id) {
+            await pool.query(
+                "UPDATE room SET status = 'Occupied' WHERE room_id = $1",
+                [room_id]
+            );
+        }
+
+        res.json({ message: "✅ Location confirmée !", rent_id: insert.rows[0].rent_id });
+
+    } catch (err) {
+        console.error("❌ Erreur lors de l'enregistrement de la location :", err);
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+});
+
+
 
 app.post("/address", async (req, res) => {
     console.log("📥 Données reçues :", req.body);
@@ -307,6 +347,75 @@ app.post("/reservation", async (req, res) => {
         res.status(500).json({ error: "Erreur serveur" });
     }
 });
+
+// Endpoint pour l'enregistrement d'un client avec réservation existante
+app.post("/api/reservations/check-in", async (req, res) => {
+    const { reservationId } = req.body;
+    
+    // Temporairement, on utilise un ID d'employé fixe pour les tests
+    // À remplacer par l'authentification réelle plus tard
+    const employeeId = 1; // ID d'employé temporaire pour les tests
+
+    if (!reservationId) {
+        return res.status(400).json({ error: "ID de réservation manquant" });
+    }
+
+    try {
+        // Vérifier si la réservation existe et est valide
+        const reservationCheck = await pool.query(
+            `SELECT r.*, rm.room_id, rm.hotel_id 
+             FROM reservation r
+             JOIN room rm ON r.room_id = rm.room_id
+             WHERE r.reservation_id = $1 AND r.reservation_status = 'Pending'`,
+            [reservationId]
+        );
+
+        if (reservationCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Réservation non trouvée ou non confirmée" });
+        }
+
+        const reservation = reservationCheck.rows[0];
+
+        // Créer l'enregistrement
+        const registrationResult = await pool.query(
+            `INSERT INTO registration (employee_id, client_id, registration_date)
+             VALUES ($1, $2, CURRENT_TIMESTAMP)
+             RETURNING registration_id`,
+            [employeeId, reservation.client_id]
+        );
+
+        // Créer la location
+        const rentResult = await pool.query(
+            `INSERT INTO rent (employee_id, reservation_id, room_id, rent_date)
+             VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+             RETURNING rent_id`,
+            [employeeId, reservationId, reservation.room_id]
+        );
+
+        // Mettre à jour le statut de la chambre
+        await pool.query(
+            `UPDATE room SET status = 'Occupied' WHERE room_id = $1`,
+            [reservation.room_id]
+        );
+
+        // Mettre à jour le statut de la réservation
+        await pool.query(
+            `UPDATE reservation SET reservation_status = 'Checked-in' WHERE reservation_id = $1`,
+            [reservationId]
+        );
+
+        res.json({
+            message: "Client enregistré avec succès",
+            registrationId: registrationResult.rows[0].registration_id,
+            rentId: rentResult.rows[0].rent_id
+        });
+
+    } catch (err) {
+        console.error("❌ Erreur lors de l'enregistrement du client:", err);
+        res.status(500).json({ error: "Erreur serveur", details: err.message });
+    }
+});
+
 app.listen(port, () => {
     console.log(`✅ Serveur lancé sur http://localhost:${port}`);
 });

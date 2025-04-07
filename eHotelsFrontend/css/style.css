@@ -118,6 +118,24 @@ h6 a {
      text-decoration: none!important;
      opacity: 1
 }
+.lang-btn {
+     background-color: transparent;
+     border: 2px solid white;
+     color: white;
+     font-weight: bold;
+     font-size: 14px;
+     padding: 5px 10px;
+     margin-left: 15px;
+     border-radius: 5px;
+     cursor: pointer;
+     transition: background-color 0.3s ease;
+  }
+  
+  .lang-btn:hover {
+     background-color: white;
+     color: black;
+  }
+  
 
 button:focus {
      outline: none;
