@@ -54,30 +54,10 @@ SELECT * FROM employee WHERE nas = '99887766';
 --  SUPPRIMER UN CLIENT PAR ID
 DELETE FROM client WHERE client_id = 5;
 
---  DÉSINSCRIRE UNE CHAMBRE
---l’employé voie toutes les réservations prévues aujourd’hui
-UPDATE room SET status = 'Under Maintenance' WHERE room_id = 4;
-SELECT r.reservation_id, c.full_name, r.room_id, r.reservation_date
-FROM reservation r
-JOIN client c ON r.client_id = c.client_id
-WHERE DATE(r.reservation_date) = CURRENT_DATE;
--- Supprimer une réservation annulée
-DELETE FROM reservation
-WHERE reservation_id = 15;
- -- Voir toutes les chambres occupées d’un hôtel
- SELECT room_id, price, capacity
-FROM room
-WHERE hotel_id = 3 AND status = 'Occupied';
---Rechercher les locations en cours par client
-SELECT rent_id, client_id, room_id, rent_date
-FROM rent
-WHERE reservation_id IS NOT NULL
-ORDER BY rent_date DESC;
 
--- Passer une chambre à "Under Maintenance"
-UPDATE room
-SET status = 'Under Maintenance'
-WHERE room_id = 8;
+
+
+
 --Consulter l’historique des locations d’un client
 SELECT rent_id, room_id, rent_date
 FROM rent
@@ -90,5 +70,35 @@ SELECT *
 FROM employee_account
 WHERE email = 'abc@gmail.com' AND password = 'abc123';
 
+-- afficher les reservation du jour
+SELECT r.reservation_id, c.full_name, r.room_id, r.reservation_date
+FROM reservation r
+JOIN client c ON r.client_id = c.client_id
+WHERE DATE(r.reservation_date) = CURRENT_DATE;
+--convertir en location
+INSERT INTO rent (employee_id, reservation_id, room_id)
+VALUES (1, 10, 5);
 
-
+-- Ensuite, mettre à jour le statut de la chambre
+UPDATE room
+SET status = 'Occupied'
+WHERE room_id = 5;
+--supprimer une réservation annulée
+DELETE FROM reservation
+WHERE reservation_id = 15;
+--Voir toutes les chambres occupées d’un hôtel
+SELECT room_id, price, capacity
+FROM room
+WHERE hotel_id = 3 AND status = 'Occupied';
+--Ajouter un nouvel employé dans un hôtel
+INSERT INTO employee (hotel_id, address_id, full_name, nas, position)
+VALUES (2, 5, 'John Smith', '987654321', 'Receptionist');
+--Rechercher les locations en cours par client
+SELECT rent_id, client_id, room_id, rent_date
+FROM rent
+WHERE reservation_id IS NOT NULL
+ORDER BY rent_date DESC;
+--Passer une chambre à "Under Maintenance"
+UPDATE room
+SET status = 'Under Maintenance'
+WHERE room_id = 8;
