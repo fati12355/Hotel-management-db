@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement | eHotels</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/paiement.css">
+</head>
+<body>
+    <div class="back_re">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="title">
+                        <h2>Paiement</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Détails de la location -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Détails de la location</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="locationDetails">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p><strong>Client:</strong> <span id="clientName">-</span></p>
+                                    <p><strong>NAS:</strong> <span id="clientNas">-</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Hôtel:</strong> <span id="hotelName">-</span></p>
+                                    <p><strong>Chambre:</strong> <span id="roomInfo">-</span></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p><strong>Date d'arrivée:</strong> <span id="checkInDate">-</span></p>
+                                    <p><strong>Date de départ:</strong> <span id="checkOutDate">-</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Prix par nuit:</strong> <span id="pricePerNight">-</span></p>
+                                    <p><strong>Nombre de nuits:</strong> <span id="numberOfNights">-</span></p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h4>Résumé des coûts</h4>
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <td>Hébergement</td>
+                                                <td class="text-right"><span id="accommodationCost">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Services additionnels</td>
+                                                <td class="text-right"><span id="additionalServices">-</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Taxes</td>
+                                                <td class="text-right"><span id="taxes">-</span></td>
+                                            </tr>
+                                            <tr class="font-weight-bold">
+                                                <td>Total</td>
+                                                <td class="text-right"><span id="totalCost">-</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulaire de paiement -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Informations de paiement</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="paymentForm">
+                            <div class="form-group">
+                                <label for="paymentMethod">Méthode de paiement</label>
+                                <select class="form-control" id="paymentMethod" required>
+                                    <option value="" disabled selected>-- Sélectionnez une méthode de paiement --</option>
+                                    <option value="credit">Carte de crédit</option>
+                                    <option value="debit">Carte de débit</option>
+                                    <option value="cash">Espèces</option>
+                                </select>
+                            </div>
+
+                            <div id="cardDetails" style="display: none;">
+                                <div class="form-group">
+                                    <label for="cardNumber">Numéro de carte</label>
+                                    <input type="text" class="form-control" id="cardNumber" placeholder="XXXX XXXX XXXX XXXX">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="expiryDate">Date d'expiration</label>
+                                            <input type="text" class="form-control" id="expiryDate" placeholder="MM/AA">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="cvv">CVV</label>
+                                            <input type="text" class="form-control" id="cvv" placeholder="XXX">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cardName">Nom sur la carte</label>
+                                    <input type="text" class="form-control" id="cardName">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="specialRequests">Demandes spéciales</label>
+                                <textarea class="form-control" id="specialRequests" rows="3" placeholder="Ajoutez ici vos demandes spéciales..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">Effectuer le paiement</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Résumé du paiement -->
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header">
+                        <h3>Résumé du paiement</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="payment-summary">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Hébergement:</span>
+                                <span id="summaryAccommodation">-</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Services additionnels:</span>
+                                <span id="summaryServices">-</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Taxes:</span>
+                                <span id="summaryTaxes">-</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between font-weight-bold">
+                                <span>Total:</span>
+                                <span id="summaryTotal">-</span>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-muted small">En effectuant ce paiement, vous acceptez nos conditions générales de réservation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="js/paiement.js"></script>
+</body>
+</html> 

@@ -173,7 +173,7 @@ INSERT INTO employee (Employee_Id, Hotel_Id, Address_Id, Full_Name, NAS, Positio
 (1037, 207, 97, 'Employee_1037', 'NAS21037', 'Head Chef'),
 (1038, 207, 98, 'Employee_1038', 'NAS21038', 'Housekeeping Supervisor'),
 (1039, 207, 99, 'Employee_1039', 'NAS21039', 'Concierge'),
-(1040, 207, 100, 'Employee_1040', 'NAS21040', 'Security Guard'),
+(1040, 207, 100, 'Employee_1040', 'NAS21040', 'Security Guard');
 -- (1041, 207, 101, 'Employee_1041', 'NAS21041', 'Bartender');
 
 INSERT INTO room (Room_Id, Hotel_Id, Price, Appliances, Capacity, Extras, Existing_Damage, Status) VALUES

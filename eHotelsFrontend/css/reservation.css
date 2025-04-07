@@ -121,6 +121,7 @@ select {
     outline: none;
   }
   
+
   .room-card {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     border-radius: 12px;
@@ -168,4 +169,4 @@ select {
   .book-btn:hover {
     background-color: #cc0000;
   }
-  
+ 
